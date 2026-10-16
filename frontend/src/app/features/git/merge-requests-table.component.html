@@ -1,0 +1,38 @@
+<h2>Open merge requests ({{ mrs().length }})</h2>
+<div class="table-wrap">
+  <table>
+    <tr>
+      <th>MR</th><th>Titre</th><th>Auteur</th><th>Branches</th><th>Statut</th>
+      <th>Pipeline</th><th>Reviewers</th><th>💬</th><th>Mise a jour</th>
+    </tr>
+    @for (mr of mrs(); track mr.iid) {
+      @let status = mr | mergeRequestStatus;
+      <tr>
+        <td><a [href]="mr.url" target="_blank" rel="noopener">!{{ mr.iid }}</a></td>
+        <td class="wrap"><a [href]="mr.url" target="_blank" rel="noopener">{{ mr.title }}</a></td>
+        <td><app-who [name]="mr.author" [avatar]="mr.avatar" /></td>
+        <td><span class="tag">{{ mr.source }}</span> → <span class="tag">{{ mr.target }}</span></td>
+        <td><span [class]="'tag ' + status.cls">{{ status.text }}</span></td>
+        <td>
+          @if (mr.pipeline) {
+            @let pipeline = mr.pipeline | pipelineStatus;
+            <span [class]="'tag ' + pipeline.cls">{{ pipeline.text }}</span>
+          } @else {
+            <span class="tag">-</span>
+          }
+        </td>
+        <td>
+          @if (mr.reviewers.length) {
+            {{ mr.reviewers.join(', ') }}
+          } @else {
+            <span class="mut">-</span>
+          }
+        </td>
+        <td>{{ mr.comments }}</td>
+        <td>{{ mr.updated | ago }}</td>
+      </tr>
+    } @empty {
+      <tr><td colspan="9" class="empty">Aucune MR ouverte</td></tr>
+    }
+  </table>
+</div>

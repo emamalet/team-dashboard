@@ -1,0 +1,14 @@
+@if (data.error(); as error) {
+  <div class="err">{{ error.message }}</div>
+} @else if (data.isLoading() || !data.value()) {
+  <app-skeleton />
+} @else {
+  <app-kpis [items]="kpis()" />
+  <app-versioned-issues-table [issues]="data.value()!.versioned" />
+  <h2>Activity by user</h2>
+  <div class="grid">
+    @for (user of users(); track user.name) {
+      <app-jira-user-card [user]="user" />
+    }
+  </div>
+}

@@ -1,0 +1,19 @@
+<h2>Failed pipelines — protected branches ({{ branches().join(', ') }})</h2>
+<div class="table-wrap">
+  <table>
+    <tr><th></th><th>Date</th><th>Branche</th><th>Declenche par</th><th>Commit</th><th>Source</th><th>Pipeline</th></tr>
+    @for (failure of failures(); track failure.id) {
+      <tr>
+        <td class="fail">❌</td>
+        <td>{{ failure.date | date: 'dd/MM HH:mm' }}</td>
+        <td><span class="tag">{{ failure.ref }}</span></td>
+        <td><app-who [name]="failure.user" [avatar]="failure.avatar" /></td>
+        <td>{{ failure.sha }}</td>
+        <td>{{ failure.source }}</td>
+        <td><a [href]="failure.url" target="_blank" rel="noopener">#{{ failure.id }}</a></td>
+      </tr>
+    } @empty {
+      <tr><td colspan="7" class="empty">Aucun echec sur la periode 🎉</td></tr>
+    }
+  </table>
+</div>

@@ -1,0 +1,7 @@
+services:
+  dashboard:
+    build: .
+    env_file: backend/.env
+    ports:
+      - "${PORT}:${PORT}"
+    restart: unless-stopped

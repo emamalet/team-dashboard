@@ -1,0 +1,5 @@
+<div class="kpis">
+  @for (kpi of items(); track kpi.label) {
+    <div class="kpi"><b>{{ kpi.value }}</b><span>{{ kpi.label }}</span></div>
+  }
+</div>

@@ -1,0 +1,14 @@
+@if (data.error(); as error) {
+  <div class="err">{{ error.message }}</div>
+} @else if (data.isLoading() || !data.value()) {
+  <app-skeleton />
+} @else {
+  <app-kpis [items]="kpis()" />
+  <app-merge-requests-table [mrs]="data.value()!.mrs" />
+  <h2>Activity by developer</h2>
+  <div class="grid">
+    @for (dev of devs(); track dev.username) {
+      <app-developer-card [dev]="dev" />
+    }
+  </div>
+}

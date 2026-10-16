@@ -1,0 +1,29 @@
+.env {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.env.today {
+  border: 2px solid var(--wa);
+  background: var(--wa-s);
+}
+
+.env.old {
+  opacity: 0.8;
+}
+
+.version {
+  font: 600 15px ui-monospace, Consolas, monospace;
+  background: var(--bg);
+  padding: 6px 10px;
+  border-radius: 8px;
+  word-break: break-all;
+}

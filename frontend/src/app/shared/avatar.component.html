@@ -1,0 +1,5 @@
+@if (url() && !failed()) {
+  <img class="avatar" [class.small]="small()" [src]="url()" alt="" (error)="failed.set(true)" />
+} @else {
+  <div class="avatar" [class.small]="small()">{{ initials() }}</div>
+}

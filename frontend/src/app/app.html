@@ -1,0 +1,33 @@
+<header>
+  <div class="logo"><i></i>Team dashboard</div>
+  <nav>
+    <a routerLink="/git" routerLinkActive="on">Git</a>
+    <a routerLink="/jira" routerLinkActive="on">Jira</a>
+    <a routerLink="/pipelines" routerLinkActive="on">Pipelines</a>
+  </nav>
+  <span class="spacer"></span>
+  <div class="controls">
+    @if (searchVisible()) {
+      <input
+        type="search"
+        placeholder="Filter a person..."
+        [value]="state.query()"
+        (input)="state.query.set($any($event.target).value)"
+      />
+    }
+    <div class="chips">
+      @for (preset of presets; track preset.days) {
+        <button class="btn" [class.on]="state.presetDays() === preset.days" (click)="state.applyPreset(preset.days)">
+          {{ preset.label }}
+        </button>
+      }
+    </div>
+    <input type="date" [value]="state.from()" (change)="state.setFrom($any($event.target).value)" />
+    <span class="mut">→</span>
+    <input type="date" [value]="state.to()" (change)="state.setTo($any($event.target).value)" />
+    <button class="btn primary" (click)="state.refresh()">Refresh</button>
+  </div>
+</header>
+<main>
+  <router-outlet />
+</main>

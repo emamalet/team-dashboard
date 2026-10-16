@@ -1,0 +1,5 @@
+@if (name()) {
+  <div class="who"><app-avatar [url]="avatar()" [name]="name()" [small]="true" />{{ name() }}</div>
+} @else {
+  <span class="mut">inconnu</span>
+}

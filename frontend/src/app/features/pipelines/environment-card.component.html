@@ -1,0 +1,38 @@
+@let env = environment();
+@if (!env.latest) {
+  <div class="card env">
+    <div class="name">{{ env.label }}</div>
+    <div class="mut">Aucun deploiement trouve</div>
+  </div>
+} @else {
+  @let latest = env.latest;
+  @let status = latest.status | pipelineStatus;
+  <div class="card env" [class.today]="deployedToday()" [class.old]="!deployedToday()">
+    <div class="name">
+      {{ env.label }}
+      <span>
+        @if (deployedToday()) {
+          <span class="tag wa">🔒 Déployé aujourd'hui</span>
+        } @else {
+          <span class="tag">Ancien déploiement</span>
+        }
+        <span [class]="'tag ' + status.cls">{{ status.text }}</span>
+      </span>
+    </div>
+    <div class="version">{{ latest.version }}</div>
+    <div class="who">
+      <app-avatar [url]="latest.avatar" [name]="latest.user" [small]="true" />
+      <div>
+        {{ latest.user }}
+        <div class="mut">{{ latest.date | date: 'dd/MM HH:mm' }} · {{ latest.date | ago }}</div>
+      </div>
+    </div>
+    @if (latest.status !== 'success' && env.lastSuccess; as lastSuccess) {
+      <div class="mut">
+        Dernier succes : <b>{{ lastSuccess.version }}</b> par {{ lastSuccess.user }}
+        ({{ lastSuccess.date | date: 'dd/MM HH:mm' }})
+      </div>
+    }
+    <a [href]="latest.url" target="_blank" rel="noopener">Voir le pipeline</a>
+  </div>
+}

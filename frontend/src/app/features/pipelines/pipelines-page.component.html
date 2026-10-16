@@ -1,0 +1,14 @@
+@if (data.error(); as error) {
+  <div class="err">{{ error.message }}</div>
+} @else if (data.isLoading() || !data.value()) {
+  <app-skeleton />
+} @else {
+  @let d = data.value()!;
+  <div class="grid">
+    @for (environment of d.environments; track environment.label) {
+      <app-environment-card [environment]="environment" />
+    }
+  </div>
+  <app-failures-table [failures]="d.failures" [branches]="d.branches" />
+  <app-deployments-table [deployments]="d.history" />
+}

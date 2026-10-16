@@ -1,0 +1,30 @@
+<h2>Issues with an assigned version ({{ issues().length }})</h2>
+<div class="table-wrap">
+  <table>
+    <tr>
+      <th>Ticket</th><th>Resume</th><th>Version</th><th>Assigne</th><th>Type</th><th>Priorite</th><th>Mis a jour</th>
+    </tr>
+    @for (group of groups(); track group.status) {
+      <tr class="group">
+        <td colspan="7">{{ group.status }} <span class="mut">({{ group.issues.length }})</span></td>
+      </tr>
+      @for (issue of group.issues; track issue.key) {
+        <tr>
+          <td><a [href]="issue.url" target="_blank" rel="noopener">{{ issue.key }}</a></td>
+          <td class="wrap">{{ issue.summary }}</td>
+          <td>
+            @for (version of issue.versions; track version) {
+              <span class="tag">{{ version }}</span>{{ ' ' }}
+            }
+          </td>
+          <td><app-who [name]="issue.assignee" [avatar]="issue.avatar" /></td>
+          <td>{{ issue.type }}</td>
+          <td>{{ issue.priority }}</td>
+          <td>{{ issue.updated | ago }}</td>
+        </tr>
+      }
+    } @empty {
+      <tr><td colspan="7" class="empty">Aucun ticket</td></tr>
+    }
+  </table>
+</div>

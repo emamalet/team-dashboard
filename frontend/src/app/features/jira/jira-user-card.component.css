@@ -1,0 +1,5 @@
+.dot-comment { background: var(--ok); }
+.dot-transition { background: var(--pri); }
+.dot-assigned { background: var(--wa); }
+.dot-created { background: var(--accent); }
+.dot-update, .dot-reassigned { background: var(--mut); }

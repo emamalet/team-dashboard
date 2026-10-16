@@ -1,0 +1,89 @@
+header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 24px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo i {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--pri), var(--accent));
+  display: inline-block;
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+nav a {
+  color: var(--mut);
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+nav a:hover {
+  text-decoration: none;
+}
+
+nav a.on {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--sh);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+input[type='search'] {
+  width: 190px;
+}
+
+.chips {
+  display: flex;
+  gap: 4px;
+}
+
+.chips button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.chips button.on {
+  background: var(--pri-s);
+  border-color: var(--pri);
+  color: var(--pri);
+}
+
+main {
+  padding: 24px;
+}

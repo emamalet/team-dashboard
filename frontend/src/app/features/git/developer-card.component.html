@@ -1,0 +1,35 @@
+<div class="card">
+  <div class="head">
+    <app-avatar [url]="dev().avatar" [name]="dev().name" />
+    <div>
+      <h3>{{ dev().name }}</h3>
+      <div class="mut">&#64;{{ dev().username }} · {{ dev().lastActivity | ago }}</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>{{ dev().pushes }}</b><span>pushes</span></div>
+    <div class="stat" title="Commits distincts en tete de push (hors commits intermediaires et rebases)">
+      <b>{{ dev().commits }}</b><span>commits</span>
+    </div>
+    <div class="stat"><b>{{ dev().branches.length }}</b><span>branches</span></div>
+    <div class="stat"><b>{{ dev().days }}</b><span>active days</span></div>
+  </div>
+  <ul class="list">
+    @for (push of dev().last; track $index) {
+      <li>
+        <div class="text">
+          <div>
+            <a [href]="push.url" target="_blank" rel="noopener"><b>{{ push.sha }}</b></a> {{ push.title }}
+          </div>
+          <div class="mut">
+            <span class="tag">{{ push.ref }}</span>
+            @if (push.created) { <span class="tag ok">nouvelle branche</span> }
+            @if (push.removed) { <span class="tag ko">supprimee</span> }
+            @if (push.count > 1) { {{ push.count }} commits · }
+            {{ push.date | date: 'dd/MM HH:mm' }}
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+</div>

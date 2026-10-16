@@ -1,0 +1,19 @@
+<h2>Deployment history for the period</h2>
+<div class="table-wrap">
+  <table>
+    <tr><th>Date</th><th>Environnement</th><th>Version</th><th>Par</th><th>Statut</th><th>Pipeline</th></tr>
+    @for (deployment of deployments(); track deployment.id) {
+      @let status = deployment.status | pipelineStatus;
+      <tr>
+        <td>{{ deployment.date | date: 'dd/MM HH:mm' }}</td>
+        <td><span class="tag">{{ deployment.env }}</span></td>
+        <td><b>{{ deployment.version }}</b></td>
+        <td><app-who [name]="deployment.user" [avatar]="deployment.avatar" /></td>
+        <td><span [class]="'tag ' + status.cls">{{ status.text }}</span></td>
+        <td><a [href]="deployment.url" target="_blank" rel="noopener">#{{ deployment.id }}</a></td>
+      </tr>
+    } @empty {
+      <tr><td colspan="6" class="empty">Aucun deploiement</td></tr>
+    }
+  </table>
+</div>
