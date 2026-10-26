@@ -1,5 +1,5 @@
 @if (data.error(); as error) {
-  <div class="err">{{ error.message }}</div>
+  <app-load-error [error]="error" />
 } @else if (data.isLoading() || !data.value()) {
   <app-skeleton />
 } @else {

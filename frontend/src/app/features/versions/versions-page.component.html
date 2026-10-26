@@ -1,0 +1,97 @@
+@if (data.error(); as error) {
+  <app-load-error [error]="error" />
+} @else if (data.isLoading() || !data.value()) {
+  <app-skeleton />
+} @else if (!version()) {
+  <div class="empty">Aucune version en cours</div>
+} @else {
+  @let d = data.value()!;
+  @let v = version()!;
+  <div class="picker">
+    <div class="chips">
+      @for (item of d.versions; track item.name) {
+        <button class="btn" [class.on]="item.name === v.name" (click)="select(item.name)">{{ item.name }}</button>
+      }
+    </div>
+    @if (v.releaseDate) {
+      <span class="mut">Livraison cible : {{ formatDate(v.releaseDate) }}</span>
+    }
+  </div>
+
+  <h2>Prevision de livraison</h2>
+  <p class="mut">
+    Equipe : {{ d.team.devs }} dev, {{ d.team.testers }} testeur, {{ d.team.workDaysPerWeek }} j/semaine. Ticket sans chiffrage :
+    {{ d.team.unestimatedMin }} j (optimiste) a {{ d.team.unestimatedMax }} j (pessimiste).
+        @if (v.after) {
+          La livraison inclut la fin de toutes les versions precedentes (jusqu'a {{ v.after }}) : tout ajout dans l'une decale celle-ci.
+        }
+      </p>
+  <div class="table-wrap">
+    <table>
+      <tr><th></th><th>Optimiste</th><th>Pessimiste</th></tr>
+      <tr>
+        <td>Charge dev (jours-homme)</td>
+        <td>{{ v.devDays.optimistic | number: '1.0-1' }}</td>
+        <td>{{ v.devDays.pessimistic | number: '1.0-1' }}</td>
+      </tr>
+      <tr>
+        <td>Charge test (jours-homme)</td>
+        <td>{{ v.testDays.optimistic | number: '1.0-1' }}</td>
+        <td>{{ v.testDays.pessimistic | number: '1.0-1' }}</td>
+      </tr>
+      <tr>
+        <td>Duree dev (jours ouvres)</td>
+        <td>{{ v.devDuration.optimistic | number: '1.0-1' }}</td>
+        <td>{{ v.devDuration.pessimistic | number: '1.0-1' }}</td>
+      </tr>
+      <tr>
+        <td>Duree test (jours ouvres)</td>
+        <td>{{ v.testDuration.optimistic | number: '1.0-1' }}</td>
+        <td>{{ v.testDuration.pessimistic | number: '1.0-1' }}</td>
+      </tr>
+      <tr>
+        <td><b>Livraison previsionnelle</b>@if (v.after) { <span class="mut">(apres {{ v.after }})</span> }</td>
+        <td [class.late]="isLate(v.delivery.optimistic, v.releaseDate)">{{ formatDate(v.delivery.optimistic) }}</td>
+        <td [class.late]="isLate(v.delivery.pessimistic, v.releaseDate)">{{ formatDate(v.delivery.pessimistic) }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>Tickets sans estimation ({{ unestimated().length }} / {{ v.issues.length }})</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Ticket</th><th>Resume</th><th>Statut</th><th>Assigne</th><th>Manquant</th></tr>
+      @for (issue of unestimated(); track issue.key) {
+        <tr>
+          <td><a [href]="issue.url" target="_blank" rel="noopener">{{ issue.key }}</a></td>
+          <td class="wrap">{{ issue.summary }}</td>
+          <td>{{ issue.status }}</td>
+          <td><app-who [name]="issue.assignee" [avatar]="issue.avatar" /></td>
+          <td>
+            @if (issue.devDays === undefined) { <span class="tag ko">dev</span>{{ ' ' }} }
+            @if (issue.testDays === undefined) { <span class="tag ko">test</span> }
+          </td>
+        </tr>
+      } @empty {
+        <tr><td colspan="5" class="empty">Tous les tickets sont estimes</td></tr>
+      }
+    </table>
+  </div>
+
+  <h2>Tickets restants ({{ v.issues.length }})</h2>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Ticket</th><th>Resume</th><th>Statut</th><th>Assigne</th><th>Dev (j)</th><th>Test (j)</th></tr>
+      @for (issue of v.issues; track issue.key) {
+        <tr>
+          <td><a [href]="issue.url" target="_blank" rel="noopener">{{ issue.key }}</a></td>
+          <td class="wrap">{{ issue.summary }}</td>
+          <td>{{ issue.status }}</td>
+          <td><app-who [name]="issue.assignee" [avatar]="issue.avatar" /></td>
+          <td>{{ issue.devDays === undefined ? '-' : (issue.devDays | number: '1.0-2') }}</td>
+          <td>{{ issue.testDays === undefined ? '-' : (issue.testDays | number: '1.0-2') }}</td>
+        </tr>
+      }
+    </table>
+  </div>
+}

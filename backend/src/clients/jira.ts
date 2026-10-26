@@ -19,7 +19,7 @@ export interface JiraIssue {
         fixVersions: { name: string }[];
         issuetype?: { name: string };
         priority?: { name: string };
-    };
+    } & Record<string, unknown>;
     changelog?: {
         histories: {
             created: string;
@@ -39,7 +39,15 @@ interface SearchResponse {
     nextPageToken?: string;
 }
 
+export interface JiraVersion {
+    name: string;
+    released: boolean;
+    archived: boolean;
+    releaseDate?: string;
+}
+
 export interface JiraClient {
+    projectVersions(project: string): Promise<JiraVersion[]>;
     searchAll(jql: string, fields: string[], options?: SearchOptions): Promise<JiraIssue[]>;
 }
 
@@ -68,5 +76,13 @@ export function createJiraClient(config: Config): JiraClient {
         return issues;
     }
 
-    return {searchAll};
+    async function projectVersions(project: string): Promise<JiraVersion[]> {
+        const r = await         fetch(`${config.jiraUrl}/rest/api/3/project/${encodeURIComponent(project)}/versions`, {
+                    headers: {Authorization: `Basic ${auth}`, Accept: 'application/json'},
+        });
+                if (!r.ok) throw new Error(`Jira ${r.status} sur les versions`);
+        return r.json() as Promise<JiraVersion[]>;
+    }
+
+    return {searchAll, projectVersions};
 }

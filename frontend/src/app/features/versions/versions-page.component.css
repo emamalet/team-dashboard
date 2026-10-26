@@ -1,0 +1,29 @@
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.chips button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.chips button.on {
+  background: var(--pri-s);
+  border-color: var(--pri);
+  color: var(--pri);
+}
+
+.late {
+  color: var(--ko);
+  font-weight: 600;
+}

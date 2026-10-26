@@ -1,7 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, shareReplay, throwError } from 'rxjs';
-import { GitData, JiraData, PipelineData } from './models';
+import { GitData, JiraData, PipelineData, VersionsData } from './models';
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly notConfigured: boolean,
+  ) {
+    super(message);
+  }
+}
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -14,6 +23,10 @@ export class ApiService {
 
   jira(from: string, to: string): Observable<JiraData> {
     return this.fetch<JiraData>('jira', from, to);
+  }
+
+  versions(from: string, to: string): Observable<VersionsData> {
+    return this.fetch<VersionsData>('versions', from, to);
   }
 
   pipelines(from: string, to: string): Observable<PipelineData> {
@@ -31,7 +44,7 @@ export class ApiService {
         shareReplay(1),
         catchError((e: HttpErrorResponse) => {
           this.cache.delete(key);
-          return throwError(() => new Error(e.error?.error ?? e.message));
+          return throwError(() => new ApiError(e.error?.error ?? e.message, e.error?.notConfigured === true));
         }),
       );
       this.cache.set(key, request);

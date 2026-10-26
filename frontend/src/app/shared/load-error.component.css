@@ -1,0 +1,8 @@
+.err.info {
+  max-width: 640px;
+  margin: 40px auto;
+  background: var(--wa-s);
+  color: var(--text);
+  border: 1px solid var(--wa);
+  border-radius: 12px;
+}

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
+import {NotConfiguredError} from './config';
 
 export type ApiHandler = (from: string, to: string) => Promise<unknown>;
 
@@ -28,6 +29,7 @@ async function handleApi(handler: ApiHandler, url: URL, res: http.ServerResponse
     try {
         sendJson(res, 200, await handler(from, to));
     } catch (e) {
+        if (e instanceof NotConfiguredError) return sendJson(res, 503, {error: e.message, notConfigured: true});
         sendJson(res, 500, {error: e instanceof Error ? e.message : String(e)});
     }
 }

@@ -123,3 +123,37 @@ export interface PipelineData {
   failures: PipelineFailure[];
   branches: string[];
 }
+
+export interface Range<T> {
+    optimistic: T;
+    pessimistic: T;
+}
+
+export interface VersionIssue {
+    key: string;
+    summary: string;
+    url: string;
+    status: string;
+    assignee?: string;
+    avatar?: string;
+    type?: string;
+    devDays?: number;
+    testDays?: number;
+}
+
+export interface VersionForecast {
+    name: string;
+    after?: string;
+    releaseDate?: string;
+    issues: VersionIssue[];
+    devDays: Range<number>;
+    testDays: Range<number>;
+    devDuration: Range<number>;
+    testDuration: Range<number>;
+    delivery: Range<string>;
+}
+
+export interface VersionsData {
+    team: { devs: number; testers: number; workDaysPerWeek: number; unestimatedMin: number; unestimatedMax: number };
+    versions: VersionForecast[];
+}

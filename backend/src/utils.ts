@@ -25,3 +25,12 @@ export const globToRegExp = (g: string): RegExp =>
     new RegExp(`^${g.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`);
 
 export const normalize = (s: string): string => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+// Rank of a status in a display order (unknown statuses go last).
+export function statusRank(order: string[]): (status: string) => number {
+    const wanted = order.map(normalize);
+    return status => {
+        const i = wanted.indexOf(normalize(status));
+        return i < 0 ? wanted.length : i;
+    };
+}

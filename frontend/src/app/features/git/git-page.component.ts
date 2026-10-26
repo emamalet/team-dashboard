@@ -3,13 +3,14 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/api.service';
 import { DashboardState } from '../../core/dashboard-state.service';
 import { KpisComponent } from '../../shared/kpis.component';
+import { LoadErrorComponent } from '../../shared/load-error.component';
 import { SkeletonComponent } from '../../shared/skeleton.component';
 import { DeveloperCardComponent } from './developer-card.component';
 import { MergeRequestsTableComponent } from './merge-requests-table.component';
 
 @Component({
   selector: 'app-git-page',
-  imports: [KpisComponent, SkeletonComponent, MergeRequestsTableComponent, DeveloperCardComponent],
+  imports: [KpisComponent, SkeletonComponent, LoadErrorComponent, MergeRequestsTableComponent, DeveloperCardComponent],
   templateUrl: './git-page.component.html',
 })
 export class GitPageComponent {

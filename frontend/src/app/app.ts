@@ -29,6 +29,6 @@ export class App {
     { initialValue: this.router.url },
   );
 
-  // Searching by person makes no sense on the pipelines tab.
-  protected readonly searchVisible = computed(() => !this.url().startsWith('/pipelines'));
+  // Searching by person makes no sense on the pipelines and versions tabs.
+  protected readonly searchVisible = computed(() => !this.url().startsWith('/pipelines') && !this.url().startsWith('/versions'));
 }

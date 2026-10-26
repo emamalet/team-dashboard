@@ -3,13 +3,14 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/api.service';
 import { DashboardState } from '../../core/dashboard-state.service';
 import { KpisComponent } from '../../shared/kpis.component';
+import { LoadErrorComponent } from '../../shared/load-error.component';
 import { SkeletonComponent } from '../../shared/skeleton.component';
 import { JiraUserCardComponent } from './jira-user-card.component';
 import { VersionedIssuesTableComponent } from './versioned-issues-table.component';
 
 @Component({
   selector: 'app-jira-page',
-  imports: [KpisComponent, SkeletonComponent, VersionedIssuesTableComponent, JiraUserCardComponent],
+  imports: [KpisComponent, SkeletonComponent, LoadErrorComponent, VersionedIssuesTableComponent, JiraUserCardComponent],
   templateUrl: './jira-page.component.html',
 })
 export class JiraPageComponent {

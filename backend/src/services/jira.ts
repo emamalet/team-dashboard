@@ -1,7 +1,7 @@
 import {Config} from '../config';
 import {JiraClient, JiraIssue, JiraUserRef} from '../clients/jira';
 import {JiraData, JiraEventType, JiraUser, VersionedIssue} from '../models';
-import {inRange, normalize} from '../utils';
+import {inRange, statusRank} from '../utils';
 
 const MAX_EVENTS_PER_USER = 30;
 
@@ -75,11 +75,7 @@ export function createJiraService({config, jira}: { config: Config; jira: JiraCl
     async function versionedIssues(): Promise<VersionedIssue[]> {
         const jql = `project = ${config.jiraProject} AND fixVersion is not EMPTY AND statusCategory != Done ORDER BY updated DESC`;
         const issues = await jira.searchAll(jql, ['summary', 'status', 'assignee', 'fixVersions', 'issuetype', 'priority', 'updated']);
-        const order = config.jiraStatusOrder.map(normalize);
-        const rank = (status: string) => {
-            const i = order.indexOf(normalize(status));
-            return i < 0 ? order.length : i;
-        };
+        const rank = statusRank(config.jiraStatusOrder);
         return issues
             .map(i => ({
                 key: i.key,

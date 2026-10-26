@@ -1,0 +1,71 @@
+name: Windows portable build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-windows
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend
+        run: npm ci && npm run build
+        working-directory: frontend
+
+      - name: Build backend
+        run: npm ci && npm run build
+        working-directory: backend
+
+      - name: Assemble portable package
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $base = 'https://nodejs.org/dist/latest-v20.x'
+          $nodeZip = [regex]::Match((Invoke-RestMethod "$base/SHASUMS256.txt"), 'node-v[\d.]+-win-x64\.zip').Value
+          Invoke-WebRequest "$base/$nodeZip" -OutFile node.zip
+          Expand-Archive node.zip -DestinationPath .
+          $pkg = 'team-dashboard'
+          New-Item -ItemType Directory "$pkg/node", "$pkg/backend", "$pkg/frontend/dist/frontend" | Out-Null
+          Copy-Item "$($nodeZip -replace '\.zip$','')/node.exe" "$pkg/node/"
+          Copy-Item backend/dist "$pkg/backend/dist" -Recurse
+          Copy-Item backend/.env.example "$pkg/backend/.env.example"
+          Copy-Item frontend/dist/frontend/browser "$pkg/frontend/dist/frontend/browser" -Recurse
+          # Launcher: tray icon (Angular favicon), no console window, stops the server when it quits.
+          $root = (Get-Location).Path
+          $src = Join-Path $root 'scripts\launcher\TeamDashboard.cs'
+          $icon = Join-Path $root 'frontend\public\favicon.ico'
+          $out = Join-Path $root "$pkg\Team dashboard.exe"
+          & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /target:winexe "/out:$out" "/win32icon:$icon" /r:System.Windows.Forms.dll /r:System.Drawing.dll $src
+          if ($LASTEXITCODE -ne 0) { throw 'Compilation du lanceur en echec' }
+          Compress-Archive -Path $pkg -DestinationPath team-dashboard-windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: team-dashboard-windows
+          path: team-dashboard-windows.zip
+
+      - name: Publish rolling release "latest"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --cleanup-tag --yes 2>&1 | Out-Null
+          gh release create latest team-dashboard-windows.zip `
+            --target "$env:GITHUB_SHA" `
+            --title "Dernier build Windows" `
+            --notes "Build automatique du commit $env:GITHUB_SHA. Decompresser, copier backend/.env.example en backend/.env, le renseigner, puis lancer 'Team dashboard.exe'."

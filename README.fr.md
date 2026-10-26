@@ -23,7 +23,14 @@ backend/src/http.ts        serveur HTTP (API + build du frontend)
 ### Configuration
 
 Toute la configuration passe par des variables d'environnement (ou `backend/.env`, non versionné).
-Aucune valeur par défaut : le serveur refuse de démarrer si une variable manque.
+Aucune valeur par défaut. Seul `PORT` est obligatoire : chaque onglet est activé quand toutes ses variables sont renseignées, sinon il affiche `Veuillez renseigner les variables : ... dans le fichier backend/.env`.
+
+- **Git** : `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECT_ID`, `GITLAB_PROJECT_PATH`, `COMMITS_PER_DEV`
+- **Pipelines** : `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECT_ID`, `GITLAB_DEPLOY_PROJECT_ID`, `DEPLOY_*`
+- **Jira** : `JIRA_URL`, `JIRA_EMAIL`, `JIRA_TOKEN`, `JIRA_PROJECT`, `JIRA_STATUS_ORDER`
+- **Versions** : celles de Jira, plus les variables d'estimation, d'équipe et de tickets non chiffrés
+
+Une variable renseignée doit rester valide, sinon le serveur refuse de démarrer.
 Copiez `backend/.env.example` vers `backend/.env` et renseignez-le.
 
 | Variable | Description |
@@ -41,7 +48,12 @@ Copiez `backend/.env.example` vers `backend/.env` et renseignez-le.
 | `JIRA_URL` | URL Jira Cloud |
 | `JIRA_EMAIL` / `JIRA_TOKEN` | Compte et token API Atlassian |
 | `JIRA_PROJECT` | Clé du projet Jira |
-| `JIRA_STATUS_ORDER` | Ordre des statuts (séparés par des virgules) |
+| `JIRA_STATUS_ORDER` | Ordre des statuts (séparés par des virgules), aussi utilisé pour trier les tableaux Versions |
+| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Ids des champs Jira d'estimation dev / test |
+| `JIRA_DEV_ESTIMATE_DIVISOR` / `JIRA_TEST_ESTIMATE_DIVISOR` | Diviseurs de la valeur du champ pour obtenir des jours (1 = jours, 28800 = secondes avec jours de 8h) |
+| `TEAM_DEVS` / `TEAM_TESTERS` | Devs et testeurs à temps plein (décimaux permis), pour la prévision de l'onglet Versions |
+| `WORK_DAYS_PER_WEEK` | Jours travaillés par semaine, à partir du lundi (1-7) |
+| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Jours supposés pour un ticket non chiffré (optimiste / pessimiste) |
 
 ## Frontend
 
@@ -71,6 +83,10 @@ cd frontend; $env:BACKEND_URL="http://localhost:<PORT>"; npm start   # http://lo
 ```
 
 Ne commitez jamais `.env`.
+
+### Windows sans aucun outil installé
+
+Chaque push sur `main` déclenche `.github/workflows/release-windows.yml`, qui publie `team-dashboard-windows.zip` (application + `node.exe` portable) dans la release GitHub `latest`. Décompressez-le, copiez `backend\.env.example` en `backend\.env`, renseignez-le, puis lancez `Team dashboard.exe` (icône Angular) : aucune fenêtre de terminal, le serveur tourne en arrière-plan et le navigateur s'ouvre automatiquement. L'icône de la zone de notification propose d'ouvrir le dashboard, de démarrer avec Windows et de quitter ; quitter (ou tuer l'exe) arrête toujours le serveur et libère le port. Si le port est déjà utilisé, le lanceur arrête un ancien serveur du package, ou demande confirmation avant d'arrêter un autre programme. Logs : `backend\dashboard.log` et `backend\dashboard.err.log`. Le code du lanceur est `scripts/launcher/TeamDashboard.cs`, compilé par le workflow avec le `csc` du .NET Framework de Windows.
 
 ## Licence
 

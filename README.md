@@ -23,7 +23,14 @@ backend/src/http.ts        HTTP server (API + frontend build)
 ### Configuration
 
 All configuration comes from environment variables (or `backend/.env`, which is not versioned).
-There are no default values: the server refuses to start if a variable is missing.
+There are no default values. Only `PORT` is mandatory: each tab is enabled when all of its variables are set, otherwise it shows `Veuillez renseigner les variables : ... dans le fichier backend/.env`.
+
+- **Git**: `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECT_ID`, `GITLAB_PROJECT_PATH`, `COMMITS_PER_DEV`
+- **Pipelines**: `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECT_ID`, `GITLAB_DEPLOY_PROJECT_ID`, `DEPLOY_*`
+- **Jira**: `JIRA_URL`, `JIRA_EMAIL`, `JIRA_TOKEN`, `JIRA_PROJECT`, `JIRA_STATUS_ORDER`
+- **Versions**: the Jira ones, plus the estimate, team and unestimated variables
+
+A variable that is set must still be valid, otherwise the server refuses to start.
 Copy `backend/.env.example` to `backend/.env` and fill it in.
 
 | Variable | Description |
@@ -41,7 +48,12 @@ Copy `backend/.env.example` to `backend/.env` and fill it in.
 | `JIRA_URL` | Jira Cloud URL |
 | `JIRA_EMAIL` / `JIRA_TOKEN` | Atlassian account and API token |
 | `JIRA_PROJECT` | Jira project key |
-| `JIRA_STATUS_ORDER` | Status display order (comma-separated) |
+| `JIRA_STATUS_ORDER` | Status display order (comma-separated), also used to sort the Versions tables |
+| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Jira field ids holding the dev / test estimates |
+| `JIRA_DEV_ESTIMATE_DIVISOR` / `JIRA_TEST_ESTIMATE_DIVISOR` | Divide the field value to get days (1 = days, 28800 = seconds with 8h days) |
+| `TEAM_DEVS` / `TEAM_TESTERS` | Full-time devs (decimals allowed) and testers, for the Versions forecast |
+| `WORK_DAYS_PER_WEEK` | Working days per week, Monday first (1-7) |
+| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Days assumed for an unestimated issue (optimistic / pessimistic) |
 
 ## Frontend
 
@@ -71,6 +83,10 @@ cd frontend; $env:BACKEND_URL="http://localhost:<PORT>"; npm start   # http://lo
 ```
 
 Never commit `.env`.
+
+### Windows without any tool installed
+
+Every push on `main` triggers `.github/workflows/release-windows.yml`, which publishes `team-dashboard-windows.zip` (app + portable `node.exe`) on the `latest` GitHub release. Unzip it, copy `backend\.env.example` to `backend\.env`, fill it in, then run `Team dashboard.exe` (Angular icon): no terminal window, the server runs in the background and the browser opens automatically. The tray icon offers open the dashboard, start with Windows, and quit; quitting (or killing the exe) always stops the server and frees the port. If the port is already used, the launcher stops a leftover server of the package, or asks before stopping another program. Logs: `backend\dashboard.log` and `backend\dashboard.err.log`. The launcher source is `scripts/launcher/TeamDashboard.cs`, compiled by the workflow with the .NET Framework `csc` of Windows.
 
 ## License
 
