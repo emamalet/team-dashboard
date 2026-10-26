@@ -2,80 +2,35 @@
 
 [English](README.md) | **Français**
 
-Tableau de bord pour une équipe utilisant GitLab et Jira : onglets Git, Jira et Pipelines (déploiements).
+Tableau de bord pour une équipe utilisant GitLab et Jira, avec quatre onglets :
 
-```
-backend/    API Node.js (TypeScript, sans dépendance d'exécution)
-frontend/   Application Angular (TypeScript, templates HTML et CSS séparés)
-```
+- **Git** : merge requests et activité des développeurs
+- **Jira** : tickets avec une version, activité par utilisateur
+- **Versions** : dates de livraison prévisionnelles des versions en cours (capacité de l'équipe, estimations dev et test), et tickets sans estimation
+- **Pipelines** : déploiements par environnement et pipelines en échec
 
-## Backend
+## Démarrage rapide
 
-```
-backend/src/server.ts      point d'entrée (assemble config, clients, services)
-backend/src/config.ts      lecture et validation des variables d'environnement
-backend/src/models.ts      contrat de l'API (miroir : frontend/src/app/core/models.ts)
-backend/src/clients/       clients HTTP GitLab et Jira
-backend/src/services/      logique métier : git, jira, pipelines
-backend/src/http.ts        serveur HTTP (API + build du frontend)
-```
+### 1. Windows, rien à installer (recommandé)
 
-### Configuration
+1. Téléchargez `team-dashboard-windows.zip` depuis la [release `latest`](../../releases/tag/latest) (reconstruite à chaque push sur `main`) et décompressez-le.
+2. Copiez `backend\.env.example` en `backend\.env` et renseignez-le (voir [Configuration](#configuration)).
+3. Lancez `Team dashboard.exe`.
 
-Toute la configuration passe par des variables d'environnement (ou `backend/.env`, non versionné).
-Aucune valeur par défaut. Seul `PORT` est obligatoire : chaque onglet est activé quand toutes ses variables sont renseignées, sinon il affiche `Veuillez renseigner les variables : ... dans le fichier backend/.env`.
+Aucun terminal : le serveur tourne en arrière-plan et le navigateur s'ouvre tout seul. L'icône de la zone de notification permet d'ouvrir le dashboard, de démarrer avec Windows ou de quitter. Quitter (ou tuer l'exe) arrête toujours le serveur et libère le port. Si le port est déjà utilisé, un ancien serveur du package est arrêté, sinon une confirmation est demandée avant d'arrêter un autre programme. Logs : `backend\dashboard.log` et `backend\dashboard.err.log`.
 
-- **Git** : `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECT_ID`, `GITLAB_PROJECT_PATH`, `COMMITS_PER_DEV`
-- **Pipelines** : `GITLAB_URL`, `GITLAB_TOKEN`, `GITLAB_PROJECT_ID`, `GITLAB_DEPLOY_PROJECT_ID`, `DEPLOY_*`
-- **Jira** : `JIRA_URL`, `JIRA_EMAIL`, `JIRA_TOKEN`, `JIRA_PROJECT`, `JIRA_STATUS_ORDER`
-- **Versions** : celles de Jira, plus les variables d'estimation, d'équipe et de tickets non chiffrés
+### 2. Depuis les sources
 
-Une variable renseignée doit rester valide, sinon le serveur refuse de démarrer.
-Copiez `backend/.env.example` vers `backend/.env` et renseignez-le.
-
-| Variable | Description |
-|---|---|
-| `PORT` | Port d'écoute |
-| `COMMITS_PER_DEV` | Nombre de pushs récents affichés par développeur |
-| `GITLAB_URL` | URL de l'instance GitLab (sans `/api`) |
-| `GITLAB_TOKEN` | Token GitLab (scope `read_api`) |
-| `GITLAB_PROJECT_ID` | Id du projet de code (Git, MR, pipelines en échec) |
-| `GITLAB_PROJECT_PATH` | Chemin du projet dans l'URL (liens vers les commits) |
-| `GITLAB_DEPLOY_PROJECT_ID` | Id du projet dont les pipelines sont des déploiements |
-| `DEPLOY_ENV_VARIABLES` | Variables de pipeline contenant l'environnement cible (liste séparée par des virgules) |
-| `DEPLOY_VERSION_VARIABLES` | Variables de pipeline contenant la version (la première renseignée est retenue) |
-| `DEPLOY_ENVIRONMENTS` | JSON `{"libellé":"valeur"}` des environnements suivis |
-| `JIRA_URL` | URL Jira Cloud |
-| `JIRA_EMAIL` / `JIRA_TOKEN` | Compte et token API Atlassian |
-| `JIRA_PROJECT` | Clé du projet Jira |
-| `JIRA_STATUS_ORDER` | Ordre des statuts (séparés par des virgules), aussi utilisé pour trier les tableaux Versions |
-| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Ids des champs Jira d'estimation dev / test |
-| `JIRA_DEV_ESTIMATE_DIVISOR` / `JIRA_TEST_ESTIMATE_DIVISOR` | Diviseurs de la valeur du champ pour obtenir des jours (1 = jours, 28800 = secondes avec jours de 8h) |
-| `TEAM_DEVS` / `TEAM_TESTERS` | Devs et testeurs à temps plein (décimaux permis), pour la prévision de l'onglet Versions |
-| `WORK_DAYS_PER_WEEK` | Jours travaillés par semaine, à partir du lundi (1-7) |
-| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Jours supposés pour un ticket non chiffré (optimiste / pessimiste) |
-
-## Frontend
-
-```
-frontend/src/app/core/       modèles, service API, état partagé (période, recherche)
-frontend/src/app/shared/     composants et pipes réutilisables
-frontend/src/app/features/   une page par onglet (git, jira, pipelines) et ses composants
-frontend/src/styles.css      styles globaux ; chaque composant a son .html et son .css
-```
-
-Le HTML est écrit uniquement dans des templates Angular (`*.html`) : aucun JavaScript ne construit de HTML.
-
-## Lancement
-
-Renseignez `backend/.env`, puis **une seule commande** (depuis la racine) :
+Node 20 requis. Renseignez `backend/.env`, puis, depuis la racine :
 
 ```powershell
-npm start          # installe, build le frontend et lance sur http://localhost:<PORT>
-npm run docker     # ou avec Docker (aucun Node requis) : docker compose --env-file backend/.env up --build
+npm start          # installe, build et sert sur http://localhost:<PORT>
+npm run docker     # ou avec Docker, sans Node
 ```
 
-Développement (rechargement à chaud, le frontend proxifie `/api` vers le backend) :
+### 3. Développement
+
+Rechargement à chaud, le frontend proxifie `/api` vers le backend :
 
 ```powershell
 cd backend; npm start
@@ -84,9 +39,64 @@ cd frontend; $env:BACKEND_URL="http://localhost:<PORT>"; npm start   # http://lo
 
 Ne commitez jamais `.env`.
 
-### Windows sans aucun outil installé
+## Configuration
 
-Chaque push sur `main` déclenche `.github/workflows/release-windows.yml`, qui publie `team-dashboard-windows.zip` (application + `node.exe` portable) dans la release GitHub `latest`. Décompressez-le, copiez `backend\.env.example` en `backend\.env`, renseignez-le, puis lancez `Team dashboard.exe` (icône Angular) : aucune fenêtre de terminal, le serveur tourne en arrière-plan et le navigateur s'ouvre automatiquement. L'icône de la zone de notification propose d'ouvrir le dashboard, de démarrer avec Windows et de quitter ; quitter (ou tuer l'exe) arrête toujours le serveur et libère le port. Si le port est déjà utilisé, le lanceur arrête un ancien serveur du package, ou demande confirmation avant d'arrêter un autre programme. Logs : `backend\dashboard.log` et `backend\dashboard.err.log`. Le code du lanceur est `scripts/launcher/TeamDashboard.cs`, compilé par le workflow avec le `csc` du .NET Framework de Windows.
+Tout passe par des variables d'environnement ou `backend/.env` (non versionné), **sans valeur par défaut**. Seul `PORT` est obligatoire : un onglet est activé quand toutes ses variables sont renseignées, sinon il affiche `Veuillez renseigner les variables : ... dans le fichier backend/.env`. Une variable renseignée doit être valide, sinon le serveur refuse de démarrer.
+
+| Variable | Onglet | Description |
+|---|---|---|
+| `PORT` | tous | Port d'écoute |
+| `GITLAB_URL` | Git, Pipelines | URL de l'instance GitLab (sans `/api`) |
+| `GITLAB_TOKEN` | Git, Pipelines | Token GitLab (scope `read_api`) |
+| `GITLAB_PROJECT_ID` | Git, Pipelines | Id du projet de code (MR, pipelines en échec) |
+| `GITLAB_PROJECT_PATH` | Git | Chemin du projet dans l'URL (liens vers les commits) |
+| `COMMITS_PER_DEV` | Git | Nombre de pushs récents affichés par développeur |
+| `GITLAB_DEPLOY_PROJECT_ID` | Pipelines | Id du projet dont les pipelines sont des déploiements |
+| `DEPLOY_ENV_VARIABLES` | Pipelines | Variables de pipeline contenant l'environnement cible (séparées par des virgules) |
+| `DEPLOY_VERSION_VARIABLES` | Pipelines | Variables de pipeline contenant la version (la première renseignée est retenue) |
+| `DEPLOY_ENVIRONMENTS` | Pipelines | JSON `{"libellé":"valeur"}` des environnements suivis |
+| `JIRA_URL` | Jira, Versions | URL Jira Cloud |
+| `JIRA_EMAIL` / `JIRA_TOKEN` | Jira, Versions | Compte et token API Atlassian |
+| `JIRA_PROJECT` | Jira, Versions | Clé du projet Jira |
+| `JIRA_STATUS_ORDER` | Jira, Versions | Ordre des statuts (séparés par des virgules) ; trie aussi les tableaux Versions |
+| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Versions | Ids des champs Jira d'estimation dev / test |
+| `JIRA_DEV_ESTIMATE_DIVISOR` / `JIRA_TEST_ESTIMATE_DIVISOR` | Versions | Diviseurs de la valeur du champ pour obtenir des jours (1 = jours, 28800 = secondes avec jours de 8h) |
+| `TEAM_DEVS` / `TEAM_TESTERS` | Versions | Devs et testeurs à temps plein (décimaux permis) |
+| `WORK_DAYS_PER_WEEK` | Versions | Jours travaillés par semaine, à partir du lundi (1-7) |
+| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Versions | Jours supposés pour un ticket non chiffré (optimiste / pessimiste) |
+
+### Calcul de la prévision des versions
+
+- Seules les versions non livrées et non archivées sont listées, triées par numéro.
+- Charge = somme des estimations restantes ; un ticket non chiffré compte pour la valeur optimiste / pessimiste.
+- Devs et testeurs travaillent en parallèle : date de livraison = le plus long de (charge dev / devs) et (charge test / testeurs), en jours ouvrés à partir d'aujourd'hui.
+- Les versions s'enchaînent : chacune inclut la charge des précédentes, donc ajouter du travail à la 4.17.2 décale la 4.18.0.
+
+## Architecture
+
+```
+backend/    API Node.js (TypeScript, sans dépendance d'exécution)
+frontend/   Application Angular (templates HTML et CSS séparés)
+scripts/launcher/   Lanceur Windows en zone de notification (C#), compilé par la CI
+```
+
+```
+backend/src/server.ts      point d'entrée (assemble config, clients, services)
+backend/src/config.ts      lecture et validation des variables d'environnement, onglets activés
+backend/src/models.ts      contrat de l'API (miroir : frontend/src/app/core/models.ts)
+backend/src/clients/       clients HTTP GitLab et Jira
+backend/src/services/      logique métier : git, jira, versions, pipelines
+backend/src/http.ts        serveur HTTP (API + build du frontend)
+
+frontend/src/app/core/       modèles, service API, état partagé (période, recherche)
+frontend/src/app/shared/     composants et pipes réutilisables
+frontend/src/app/features/   une page par onglet et ses composants
+frontend/src/styles.css      styles globaux ; chaque composant a son .html et son .css
+```
+
+Le HTML est écrit uniquement dans des templates Angular (`*.html`) : aucun JavaScript ne construit de HTML.
+
+Le package Windows est construit par `.github/workflows/release-windows.yml` (frontend + backend + `node.exe` portable + lanceur) et publié comme release `latest`.
 
 ## Licence
 
