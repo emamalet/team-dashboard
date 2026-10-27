@@ -7,6 +7,7 @@ import {createGitService} from './services/git';
 import {createJiraService} from './services/jira';
 import {createVersionService} from './services/versions';
 import {createPipelineService} from './services/pipelines';
+import {errorMessage} from './utils';
 
 let config: Config;
 try {
@@ -15,6 +16,12 @@ try {
     console.error(e instanceof Error ? e.message : e);
     process.exit(1);
 }
+
+process.on('unhandledRejection', reason => console.error(`[${new Date().toISOString()}] unhandledRejection : ${errorMessage(reason)}`));
+process.on('uncaughtException', e => {
+    console.error(`[${new Date().toISOString()}] uncaughtException : ${e.stack ?? errorMessage(e)}`);
+    process.exit(1);
+});
 
 const gitlab = createGitlabClient(config);
 const jira = createJiraClient(config);

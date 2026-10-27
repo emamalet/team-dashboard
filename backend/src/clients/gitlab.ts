@@ -1,4 +1,5 @@
 import {Config} from '../config';
+import {bodyExcerpt, loggedFetch} from '../utils';
 
 export type Params = Record<string, string | number | undefined>;
 
@@ -13,10 +14,10 @@ export function createGitlabClient(config: Config): GitlabClient {
     async function get<T>(path: string, params: Params = {}): Promise<T> {
         const url = new URL(`${base}${path}`);
         Object.entries(params).forEach(([k, v]) => v !== undefined && url.searchParams.set(k, String(v)));
-        const r = await fetch(url, {headers: {'PRIVATE-TOKEN': config.gitlabToken}});
+        const r = await loggedFetch('GitLab', url, {headers: {'PRIVATE-TOKEN': config.gitlabToken}});
         if (!r.ok) {
             const hint = r.status === 404 ? ' - verifier GITLAB_URL (sans /api), le token (scope read_api) et les project id' : '';
-            throw new Error(`GitLab ${r.status} sur ${base}${path}${hint}`);
+            throw new Error(`GitLab ${r.status} sur ${base}${path}${hint}${await bodyExcerpt(r)}`);
         }
         return r.json() as Promise<T>;
     }

@@ -1,4 +1,5 @@
 import {Config} from '../config';
+import {bodyExcerpt, loggedFetch} from '../utils';
 
 export interface JiraUserRef {
     accountId: string;
@@ -55,12 +56,12 @@ export function createJiraClient(config: Config): JiraClient {
     const auth = Buffer.from(`${config.jiraEmail}:${config.jiraToken}`).toString('base64');
 
     async function post<T>(path: string, body: unknown): Promise<T> {
-        const r = await fetch(`${config.jiraUrl}/rest/api/3${path}`, {
+        const r = await loggedFetch('Jira', `${config.jiraUrl}/rest/api/3${path}`, {
             method: 'POST',
             headers: {Authorization: `Basic ${auth}`, 'Content-Type': 'application/json', Accept: 'application/json'},
             body: JSON.stringify(body),
         });
-        if (!r.ok) throw new Error(`Jira ${r.status} sur ${path}`);
+        if (!r.ok) throw new Error(`Jira ${r.status} sur ${config.jiraUrl}/rest/api/3${path}${await bodyExcerpt(r)}`);
         return r.json() as Promise<T>;
     }
 
@@ -77,10 +78,9 @@ export function createJiraClient(config: Config): JiraClient {
     }
 
     async function projectVersions(project: string): Promise<JiraVersion[]> {
-        const r = await         fetch(`${config.jiraUrl}/rest/api/3/project/${encodeURIComponent(project)}/versions`, {
-                    headers: {Authorization: `Basic ${auth}`, Accept: 'application/json'},
-        });
-                if (!r.ok) throw new Error(`Jira ${r.status} sur les versions`);
+        const url = `${config.jiraUrl}/rest/api/3/project/${encodeURIComponent(project)}/versions`;
+        const r = await loggedFetch('Jira', url, {headers: {Authorization: `Basic ${auth}`, Accept: 'application/json'}});
+        if (!r.ok) throw new Error(`Jira ${r.status} sur ${url}${await bodyExcerpt(r)}`);
         return r.json() as Promise<JiraVersion[]>;
     }
 

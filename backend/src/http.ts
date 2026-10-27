@@ -2,6 +2,7 @@ import fs from 'fs';
 import http from 'http';
 import path from 'path';
 import {NotConfiguredError} from './config';
+import {errorMessage} from './utils';
 
 export type ApiHandler = (from: string, to: string) => Promise<unknown>;
 
@@ -26,11 +27,19 @@ async function handleApi(handler: ApiHandler, url: URL, res: http.ServerResponse
     if (!DATE_RE.test(from) || !DATE_RE.test(to)) {
         return sendJson(res, 400, {error: 'from/to invalides (YYYY-MM-DD)'});
     }
+    const started = Date.now();
+    const label = `${url.pathname} ${from}..${to}`;
     try {
         sendJson(res, 200, await handler(from, to));
+        console.log(`[${new Date().toISOString()}] OK ${label} (${Date.now() - started} ms)`);
     } catch (e) {
-        if (e instanceof NotConfiguredError) return sendJson(res, 503, {error: e.message, notConfigured: true});
-        sendJson(res, 500, {error: e instanceof Error ? e.message : String(e)});
+        if (e instanceof NotConfiguredError) {
+            console.warn(`[${new Date().toISOString()}] 503 ${label} : ${e.message}`);
+            return sendJson(res, 503, {error: e.message, notConfigured: true});
+        }
+        console.error(`[${new Date().toISOString()}] ERREUR 500 ${label} (${Date.now() - started} ms) : ${errorMessage(e)}`);
+        if (e instanceof Error && e.stack) console.error(e.stack);
+        sendJson(res, 500, {error: errorMessage(e)});
     }
 }
 
