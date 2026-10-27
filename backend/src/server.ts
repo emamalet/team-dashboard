@@ -8,6 +8,7 @@ import {createJiraService} from './services/jira';
 import {createVersionService} from './services/versions';
 import {createPipelineService} from './services/pipelines';
 import {errorMessage} from './utils';
+import {createSettingsApi} from './settings';
 
 let config: Config;
 try {
@@ -23,20 +24,27 @@ process.on('uncaughtException', e => {
     process.exit(1);
 });
 
-const gitlab = createGitlabClient(config);
-const jira = createJiraClient(config);
-
 // A tab whose variables are not all set answers with the list of missing ones.
-const guarded = (feature: Feature, handler: ApiHandler): ApiHandler => async (from, to) => {
+const guarded = (config: Config, feature: Feature, handler: ApiHandler): ApiHandler => async (from, to) => {
     if (config.missing[feature].length) throw new NotConfiguredError(config.missing[feature]);
     return handler(from, to);
 };
 
-const routes = {
-    '/api/git': guarded('git', createGitService({config, gitlab})),
-    '/api/jira': guarded('jira', createJiraService({config, jira})),
-    '/api/versions': guarded('versions', createVersionService({config, jira})),
-    '/api/pipelines': guarded('pipelines', createPipelineService({config, gitlab})),
-};
+const routes: Record<string, ApiHandler> = {};
 
-createServer(routes).listen(config.port, () => console.log(`Supervision sur http://localhost:${config.port}`));
+// (Re)builds clients and services: also used when the configuration is edited from the interface.
+function applyConfig(config: Config): void {
+    const gitlab = createGitlabClient(config);
+    const jira = createJiraClient(config);
+    Object.assign(routes, {
+        '/api/git': guarded(config, 'git', createGitService({config, gitlab})),
+        '/api/jira': guarded(config, 'jira', createJiraService({config, jira})),
+        '/api/versions': guarded(config, 'versions', createVersionService({config, jira})),
+        '/api/pipelines': guarded(config, 'pipelines', createPipelineService({config, gitlab})),
+    });
+}
+
+applyConfig(config);
+const settings = createSettingsApi(() => config.port, applyConfig);
+
+createServer(routes, settings).listen(config.port, () => console.log(`Supervision sur http://localhost:${config.port}`));

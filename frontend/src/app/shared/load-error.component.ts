@@ -1,9 +1,11 @@
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ApiError } from '../core/api.service';
 
 // Error of a failed API call; a tab that is not configured is shown as an information, not as a failure.
 @Component({
   selector: 'app-load-error',
+  imports: [RouterLink],
   templateUrl: './load-error.component.html',
   styleUrl: './load-error.component.css',
 })

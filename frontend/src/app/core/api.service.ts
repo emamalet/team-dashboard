@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, shareReplay, throwError } from 'rxjs';
-import { GitData, JiraData, PipelineData, VersionsData } from './models';
+import { GitData, JiraData, PipelineData, SettingsData, SettingsSaveResult, VersionsData } from './models';
 
 export class ApiError extends Error {
   constructor(
@@ -11,6 +11,9 @@ export class ApiError extends Error {
     super(message);
   }
 }
+
+const toApiError = (e: HttpErrorResponse) =>
+  throwError(() => new ApiError(e.error?.error ?? e.message, e.error?.notConfigured === true));
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -33,6 +36,14 @@ export class ApiService {
     return this.fetch<PipelineData>('pipelines', from, to);
   }
 
+  getSettings(): Observable<SettingsData> {
+    return this.http.get<SettingsData>('/api/settings').pipe(catchError(toApiError));
+  }
+
+  saveSettings(values: Record<string, string>): Observable<SettingsSaveResult> {
+    return this.http.put<SettingsSaveResult>('/api/settings', { values }).pipe(catchError(toApiError));
+  }
+
   clearCache(): void {
     this.cache.clear();
   }
@@ -44,7 +55,7 @@ export class ApiService {
         shareReplay(1),
         catchError((e: HttpErrorResponse) => {
           this.cache.delete(key);
-          return throwError(() => new ApiError(e.error?.error ?? e.message, e.error?.notConfigured === true));
+          return toApiError(e);
         }),
       );
       this.cache.set(key, request);

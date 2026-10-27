@@ -12,5 +12,6 @@ export const routes: Routes = [
     path: 'pipelines',
     loadComponent: () => import('./features/pipelines/pipelines-page.component').then((m) => m.PipelinesPageComponent),
   },
+  { path: 'settings', loadComponent: () => import('./features/settings/settings-page.component').then((m) => m.SettingsPageComponent) },
   { path: '**', redirectTo: 'git' },
 ];

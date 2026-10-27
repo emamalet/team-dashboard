@@ -16,9 +16,47 @@ const REQUIRED: Record<Feature, string[]> = {
 
 export class NotConfiguredError extends Error {
     constructor(readonly missing: string[]) {
-        super(`Veuillez renseigner les variables : ${missing.join(', ')} dans le fichier backend/.env`);
+        super(`Configuration incomplete : renseignez ${missing.join(', ')} via l'icone engrenage (menu Configuration) ou dans le fichier backend/.env`);
     }
 }
+
+// Variables editable from the interface (Configuration page), in display order. Keep in sync with REQUIRED and .env.example.
+export interface Setting {
+    name: string;
+    group: string;
+    help: string;
+    secret?: boolean;
+}
+
+export const SETTINGS: Setting[] = [
+    {name: 'PORT', group: 'Serveur', help: "Port d'ecoute du dashboard (redemarrage necessaire apres modification)"},
+    {name: 'COMMITS_PER_DEV', group: 'Serveur', help: 'Nombre de derniers commits affiches par developpeur'},
+    {name: 'GITLAB_URL', group: 'GitLab', help: 'URL de GitLab, sans /api'},
+    {name: 'GITLAB_TOKEN', group: 'GitLab', secret: true, help: 'Token GitLab avec le scope read_api'},
+    {name: 'GITLAB_PROJECT_ID', group: 'GitLab', help: 'Id numerique du projet'},
+    {name: 'GITLAB_PROJECT_PATH', group: 'GitLab', help: "Chemin du projet dans l'URL GitLab (liens des commits)"},
+    {name: 'GITLAB_DEPLOY_PROJECT_ID', group: 'Pipelines', help: 'Id du projet dont les pipelines representent les deploiements'},
+    {name: 'DEPLOY_ENV_VARIABLES', group: 'Pipelines', help: "Variables de pipeline donnant l'environnement cible (separees par des virgules)"},
+    {name: 'DEPLOY_VERSION_VARIABLES', group: 'Pipelines', help: 'Variables de pipeline donnant la version deployee (la premiere renseignee gagne)'},
+    {name: 'DEPLOY_ENVIRONMENTS', group: 'Pipelines', help: 'Libelle affiche -> valeur de la variable, au format JSON'},
+    {name: 'JIRA_URL', group: 'Jira', help: 'URL Jira Cloud'},
+    {name: 'JIRA_EMAIL', group: 'Jira', help: 'Email du compte Jira'},
+    {name: 'JIRA_TOKEN', group: 'Jira', secret: true, help: "Token d'API Atlassian"},
+    {name: 'JIRA_PROJECT', group: 'Jira', help: 'Cle du projet Jira'},
+    {name: 'JIRA_STATUS_ORDER', group: 'Jira', help: "Ordre d'affichage des statuts (separes par des virgules)"},
+    {name: 'JIRA_DEV_ESTIMATE_FIELD', group: 'Versions', help: "Id du champ Jira d'estimation dev"},
+    {name: 'JIRA_TEST_ESTIMATE_FIELD', group: 'Versions', help: "Id du champ Jira d'estimation test"},
+    {name: 'JIRA_DEV_ESTIMATE_DIVISOR', group: 'Versions', help: "Diviseur convertissant l'estimation dev en jours"},
+    {name: 'JIRA_TEST_ESTIMATE_DIVISOR', group: 'Versions', help: "Diviseur convertissant l'estimation test en jours"},
+    {name: 'TEAM_DEVS', group: 'Versions', help: 'Nombre de developpeurs (ETP)'},
+    {name: 'TEAM_TESTERS', group: 'Versions', help: 'Nombre de testeurs (ETP)'},
+    {name: 'WORK_DAYS_PER_WEEK', group: 'Versions', help: 'Jours travailles par semaine (lundi en premier)'},
+    {name: 'UNESTIMATED_MIN_DAYS', group: 'Versions', help: 'Jours minimum pour un ticket non estime'},
+    {name: 'UNESTIMATED_MAX_DAYS', group: 'Versions', help: 'Jours maximum pour un ticket non estime'},
+];
+
+export const ENV_FILE = path.join(__dirname, '..', '.env');
+const PROCESS_ENV: Record<string, string | undefined> = {...process.env};
 
 export interface Config {
     port: number;
@@ -49,15 +87,34 @@ export interface Config {
     unestimatedMaxDays: number;
 }
 
-// Loads a .env file (KEY=VALUE) without overriding variables that are already set.
-function loadDotEnv(file: string): void {
-    if (!fs.existsSync(file)) return;
+// Parses a .env file (KEY=VALUE); a missing file gives no variables.
+export function readEnvFile(file = ENV_FILE): Record<string, string> {
+    const vars: Record<string, string> = {};
+    if (!fs.existsSync(file)) return vars;
     for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
         const m = /^\s*([\w.]+)\s*=\s*(.*?)\s*$/.exec(line);
-        if (!m) continue;
-        process.env[m[1]] ??= m[2].replace(/^(['"])(.*)\1$/, '$2');
+        if (m) vars[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
     }
+    return vars;
 }
+
+// Updates (or appends) KEY=VALUE lines of the .env file, keeping comments and other lines untouched.
+export function writeEnvFile(updates: Record<string, string>): void {
+    const text = fs.existsSync(ENV_FILE) ? fs.readFileSync(ENV_FILE, 'utf8') : '';
+    const eol = text.includes('\r\n') ? '\r\n' : '\n';
+    const lines = text === '' ? [] : text.split(/\r?\n/);
+    if (lines.length && lines[lines.length - 1] === '') lines.pop();
+    for (const [name, value] of Object.entries(updates)) {
+        const i = lines.findIndex(l => new RegExp(`^\\s*${name}\\s*=`).test(l));
+        if (i >= 0) lines[i] = `${name}=${value}`;
+        else lines.push(`${name}=${value}`);
+    }
+    fs.writeFileSync(ENV_FILE, lines.join(eol) + eol, 'utf8');
+}
+
+// Variables as the server sees them: process environment first, then the .env file.
+export const currentVariables = (overrides: Record<string, string> = {}): Record<string, string | undefined> =>
+    ({...readEnvFile(), ...overrides, ...PROCESS_ENV});
 
 const list = (value: string): string[] => value.split(',').map(s => s.trim()).filter(Boolean);
 const stripTrailingSlash = (url: string): string => url.replace(/\/+$/, '');
@@ -71,11 +128,11 @@ function parseEnvironments(raw: string): Record<string, string> {
     throw new Error('DEPLOY_ENVIRONMENTS doit etre un objet JSON {"libelle":"valeur"}');
 }
 
-export function loadConfig(): Config {
-    loadDotEnv(path.join(__dirname, '..', '.env'));
+export const loadConfig = (): Config => buildConfig(currentVariables());
 
-    const env = (name: string): string => process.env[name] ?? '';
-    if (!env('PORT')) throw new Error("Variables d'environnement manquantes : PORT (voir .env.example)");
+export function buildConfig(vars: Record<string, string | undefined>): Config {
+    const env = (name: string): string => vars[name] ?? '';
+    if (!env('PORT')) throw new Error("Variable PORT manquante : renseignez-la dans backend/.env (voir .env.example)");
 
     // An unset optional variable gives 0; a set one must be valid even if its tab is otherwise disabled.
     const num = (name: string, valid: (n: number) => boolean, rule: string): number => {

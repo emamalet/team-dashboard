@@ -14,8 +14,7 @@ Tableau de bord pour une équipe utilisant GitLab et Jira, avec quatre onglets :
 ### 1. Windows, rien à installer (recommandé)
 
 1. Téléchargez `team-dashboard-windows.zip` depuis la [release `latest`](../../releases/tag/latest) (reconstruite à chaque push sur `main`) et décompressez-le.
-2. Copiez `backend\.env.example` en `backend\.env` et renseignez-le (voir [Configuration](#configuration)).
-3. Lancez `Team dashboard.exe`.
+2. Lancez `Team dashboard.exe` : au premier lancement il crée `backend\.env` (avec `PORT` seulement) et ouvre la page **Configuration** (icône ⚙ dans l'en-tête, ou menu de l'icône de notification) où vous renseignez le reste (voir [Configuration](#configuration)).
 
 Aucun terminal : le serveur tourne en arrière-plan et le navigateur s'ouvre tout seul. L'icône de la zone de notification permet d'ouvrir le dashboard, de démarrer avec Windows ou de quitter. Quitter (ou tuer l'exe) arrête toujours le serveur et libère le port. Si le port est déjà utilisé, un ancien serveur du package est arrêté, sinon une confirmation est demandée avant d'arrêter un autre programme. Logs : `backend\dashboard.log` et `backend\dashboard.err.log`.
 
@@ -41,7 +40,9 @@ Ne commitez jamais `.env`.
 
 ## Configuration
 
-Tout passe par des variables d'environnement ou `backend/.env` (non versionné), **sans valeur par défaut**. Seul `PORT` est obligatoire : un onglet est activé quand toutes ses variables sont renseignées, sinon il affiche `Veuillez renseigner les variables : ... dans le fichier backend/.env`. Une variable renseignée doit être valide, sinon le serveur refuse de démarrer.
+Tout passe par des variables d'environnement ou `backend/.env` (non versionné), **sans valeur par défaut**. Seul `PORT` est obligatoire : un onglet est activé quand toutes ses variables sont renseignées, sinon il liste celles qui manquent et renvoie vers la page Configuration. Une variable renseignée doit être valide, sinon le serveur refuse de démarrer.
+
+La page **⚙ Configuration** édite `backend/.env` (les secrets ne sont jamais réaffichés ; laissez un token vide pour le conserver) et applique les changements immédiatement, sauf `PORT` qui nécessite un redémarrage. Elle n'est accessible que depuis `localhost` : avec Docker, éditez directement `backend/.env`.
 
 | Variable | Onglet | Description |
 |---|---|---|

@@ -27,6 +27,7 @@
     <span class="mut">→</span>
     <input type="date" [value]="state.to()" (change)="state.setTo($any($event.target).value)" />
     <button class="btn primary" (click)="state.refresh()">Refresh</button>
+    <a class="btn gear" routerLink="/settings" routerLinkActive="on" title="Configuration" aria-label="Configuration">⚙</a>
   </div>
 </header>
 <main>

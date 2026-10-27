@@ -157,3 +157,22 @@ export interface VersionsData {
     team: { devs: number; testers: number; workDaysPerWeek: number; unestimatedMin: number; unestimatedMax: number };
     versions: VersionForecast[];
 }
+
+export interface SettingItem {
+  name: string;
+  group: string;
+  help: string;
+  secret?: boolean;
+  // Never filled for secrets: only isSet tells whether one is configured.
+  value: string;
+  isSet: boolean;
+  example: string;
+}
+
+export interface SettingsData {
+  settings: SettingItem[];
+}
+
+export interface SettingsSaveResult {
+  portChanged: boolean;
+}

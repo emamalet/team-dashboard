@@ -30,11 +30,20 @@ static class Program
         string nodeExe = Path.Combine(root, "node", "node.exe");
         string envFile = Path.Combine(backend, ".env");
 
-        if (!File.Exists(envFile)) Fail("Fichier backend\\.env manquant : copiez backend\\.env.example en backend\\.env et renseignez-le.");
+        // First launch: create a minimal .env (PORT only); everything else is entered from the Configuration page.
+        bool firstRun = !File.Exists(envFile);
+        if (firstRun)
+        {
+            string example = Path.Combine(backend, ".env.example");
+            Match p = File.Exists(example) ? Regex.Match(File.ReadAllText(example), @"^\s*PORT\s*=\s*\d+\s*$", RegexOptions.Multiline) : Match.Empty;
+            if (!p.Success) Fail("Fichiers backend\\.env et backend\\.env.example (avec PORT) introuvables.");
+            File.WriteAllText(envFile, p.Value.Trim() + Environment.NewLine);
+        }
         Match m = Regex.Match(File.ReadAllText(envFile), @"^\s*PORT\s*=\s*(\d+)", RegexOptions.Multiline);
         if (!m.Success) Fail("PORT introuvable dans backend\\.env.");
         string port = m.Groups[1].Value;
         url = "http://localhost:" + port;
+        string firstUrl = firstRun ? url + "/settings" : url;
 
         bool created;
         using (new Mutex(true, "Global\\TeamDashboardLauncher", out created))
@@ -45,7 +54,7 @@ static class Program
             FreePort(port, nodeExe);
             StartServer(nodeExe, backend);
             BuildTray();
-            Process.Start(url);
+            Process.Start(firstUrl);
             Application.Run();
 
             tray.Visible = false;
@@ -133,6 +142,7 @@ static class Program
         };
         var menu = new ContextMenuStrip();
         menu.Items.Add("Ouvrir le dashboard", null, (s, e) => Process.Start(url));
+        menu.Items.Add("Configuration", null, (s, e) => Process.Start(url + "/settings"));
         var auto = new ToolStripMenuItem("Demarrer avec Windows") { CheckOnClick = true, Checked = IsAutoStart() };
         auto.Click += (s, e) => SetAutoStart(auto.Checked);
         menu.Items.Add(auto);

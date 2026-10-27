@@ -68,4 +68,4 @@ jobs:
           gh release create latest team-dashboard-windows.zip `
             --target "$env:GITHUB_SHA" `
             --title "Dernier build Windows" `
-            --notes "Build automatique du commit $env:GITHUB_SHA. Decompresser, copier backend/.env.example en backend/.env, le renseigner, puis lancer 'Team dashboard.exe'."
+            --notes "Build automatique du commit $env:GITHUB_SHA. Decompresser puis lancer 'Team dashboard.exe' : la configuration se fait depuis l'interface (icone engrenage)."

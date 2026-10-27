@@ -14,8 +14,7 @@ A dashboard for teams using GitLab and Jira, with four tabs:
 ### 1. Windows, nothing to install (recommended)
 
 1. Download `team-dashboard-windows.zip` from the [`latest` release](../../releases/tag/latest) (rebuilt on every push on `main`) and unzip it.
-2. Copy `backend\.env.example` to `backend\.env` and fill it in (see [Configuration](#configuration)).
-3. Run `Team dashboard.exe`.
+2. Run `Team dashboard.exe`: on first launch it creates `backend\.env` (only `PORT`) and opens the **Configuration** page (⚙ icon in the header, or tray menu) where you fill in the rest (see [Configuration](#configuration)).
 
 No terminal: the server runs in the background and the browser opens by itself. The tray icon lets you open the dashboard, start with Windows, or quit. Quitting (or killing the exe) always stops the server and frees the port. If the port is already used, a leftover server of the package is stopped, otherwise you are asked before another program is stopped. Logs: `backend\dashboard.log` and `backend\dashboard.err.log`.
 
@@ -41,7 +40,9 @@ Never commit `.env`.
 
 ## Configuration
 
-Everything comes from environment variables or `backend/.env` (not versioned), with **no default values**. Only `PORT` is mandatory: a tab is enabled when all of its variables are set, otherwise it shows `Veuillez renseigner les variables : ... dans le fichier backend/.env`. A variable that is set must be valid, otherwise the server refuses to start.
+Everything comes from environment variables or `backend/.env` (not versioned), with **no default values**. Only `PORT` is mandatory: a tab is enabled when all of its variables are set, otherwise it lists the missing ones and links to the Configuration page. A variable that is set must be valid, otherwise the server refuses to start.
+
+The **⚙ Configuration** page edits `backend/.env` (secrets are never shown back; leave a token empty to keep it) and applies changes immediately, except `PORT` which needs a restart. It is only reachable from `localhost`, so with Docker edit `backend/.env` directly.
 
 | Variable | Tab | Description |
 |---|---|---|

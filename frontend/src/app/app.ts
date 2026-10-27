@@ -30,5 +30,5 @@ export class App {
   );
 
   // Searching by person makes no sense on the pipelines and versions tabs.
-  protected readonly searchVisible = computed(() => !this.url().startsWith('/pipelines') && !this.url().startsWith('/versions'));
+  protected readonly searchVisible = computed(() => !['/pipelines', '/versions', '/settings'].some((p) => this.url().startsWith(p)));
 }

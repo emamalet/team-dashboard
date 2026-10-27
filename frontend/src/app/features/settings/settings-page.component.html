@@ -1,0 +1,44 @@
+<h2>Configuration</h2>
+<p class="mut">
+  Ces valeurs sont enregistrees dans le fichier <code>backend/.env</code> et prises en compte immediatement.
+  Un onglet est active quand toutes ses variables sont renseignees.
+</p>
+
+@if (data.isLoading()) {
+  <app-skeleton />
+} @else if (data.error(); as error) {
+  <app-load-error [error]="error" />
+} @else {
+  @for (group of groups(); track group.title) {
+    <section class="card">
+      <h3>{{ group.title }}</h3>
+      @for (s of group.settings; track s.name) {
+        <label class="field">
+          <span class="name">{{ s.name }}</span>
+          <input
+            [type]="s.secret ? 'password' : 'text'"
+            [value]="valueOf(s)"
+            [placeholder]="placeholder(s)"
+            autocomplete="off"
+            (input)="edit(s, $any($event.target).value)"
+          />
+          <span class="mut">{{ s.help }}</span>
+        </label>
+      }
+    </section>
+  }
+
+  <div class="actions">
+    <button class="btn primary" [disabled]="!dirty() || saving()" (click)="save()">
+      {{ saving() ? 'Enregistrement...' : 'Enregistrer' }}
+    </button>
+    @if (saved() === 'ok') {
+      <span class="ok">Configuration enregistree.</span>
+    } @else if (saved() === 'port') {
+      <span class="ok">Enregistre. Le nouveau port sera pris en compte au prochain demarrage de l'application.</span>
+    }
+    @if (saveError()) {
+      <span class="ko">{{ saveError() }}</span>
+    }
+  </div>
+}
