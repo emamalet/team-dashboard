@@ -60,11 +60,14 @@ La page **⚙ Configuration** édite `backend/.env` (les secrets ne sont jamais 
 | `JIRA_EMAIL` / `JIRA_TOKEN` | Jira, Versions | Compte et token API Atlassian |
 | `JIRA_PROJECT` | Jira, Versions | Clé du projet Jira |
 | `JIRA_STATUS_ORDER` | Jira, Versions | Ordre des statuts (séparés par des virgules) ; trie aussi les tableaux Versions |
-| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Versions | Ids des champs Jira d'estimation dev / test |
+| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Versions | Ids des champs Jira d'estimation dev / test, séparés par des virgules (le premier renseigné est retenu) |
 | `JIRA_DEV_ESTIMATE_DIVISOR` / `JIRA_TEST_ESTIMATE_DIVISOR` | Versions | Diviseurs de la valeur du champ pour obtenir des jours (1 = jours, 28800 = secondes avec jours de 8h) |
 | `TEAM_DEVS` / `TEAM_TESTERS` | Versions | Devs et testeurs à temps plein (décimaux permis) |
 | `WORK_DAYS_PER_WEEK` | Versions | Jours travaillés par semaine, à partir du lundi (1-7) |
-| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Versions | Jours supposés pour un ticket non chiffré (optimiste / pessimiste) |
+| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Versions | Jours supposés pour un ticket non chiffré, côté dev (optimiste / pessimiste) |
+| `UNESTIMATED_TEST_MIN_DAYS` / `UNESTIMATED_TEST_MAX_DAYS` | Versions | Idem, côté test |
+| `DEV_DONE_STATUSES` | Versions | Statuts où le dev est fini (code review, à recetter, en recette…) : l'estimation dev n'est plus comptée |
+| `EXCLUDED_ISSUE_TYPES` | Versions | Types de ticket exclus du calcul (epics, tâches, sous-tâches…) |
 
 ### Calcul de la prévision des versions
 

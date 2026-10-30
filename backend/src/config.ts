@@ -11,7 +11,8 @@ const REQUIRED: Record<Feature, string[]> = {
     pipelines: [...GITLAB, 'GITLAB_PROJECT_ID', 'GITLAB_DEPLOY_PROJECT_ID', 'DEPLOY_ENV_VARIABLES', 'DEPLOY_VERSION_VARIABLES', 'DEPLOY_ENVIRONMENTS'],
     jira: [...JIRA, 'JIRA_STATUS_ORDER'],
     versions: [...JIRA, 'JIRA_STATUS_ORDER', 'JIRA_DEV_ESTIMATE_FIELD', 'JIRA_TEST_ESTIMATE_FIELD', 'JIRA_DEV_ESTIMATE_DIVISOR', 'JIRA_TEST_ESTIMATE_DIVISOR',
-        'TEAM_DEVS', 'TEAM_TESTERS', 'WORK_DAYS_PER_WEEK', 'UNESTIMATED_MIN_DAYS', 'UNESTIMATED_MAX_DAYS'],
+        'TEAM_DEVS', 'TEAM_TESTERS', 'WORK_DAYS_PER_WEEK', 'UNESTIMATED_MIN_DAYS', 'UNESTIMATED_MAX_DAYS',
+        'UNESTIMATED_TEST_MIN_DAYS', 'UNESTIMATED_TEST_MAX_DAYS', 'DEV_DONE_STATUSES', 'EXCLUDED_ISSUE_TYPES'],
 };
 
 export class NotConfiguredError extends Error {
@@ -44,15 +45,19 @@ export const SETTINGS: Setting[] = [
     {name: 'JIRA_TOKEN', group: 'Jira', secret: true, help: "Token d'API Atlassian"},
     {name: 'JIRA_PROJECT', group: 'Jira', help: 'Cle du projet Jira'},
     {name: 'JIRA_STATUS_ORDER', group: 'Jira', help: "Ordre d'affichage des statuts (separes par des virgules)"},
-    {name: 'JIRA_DEV_ESTIMATE_FIELD', group: 'Versions', help: "Id du champ Jira d'estimation dev"},
-    {name: 'JIRA_TEST_ESTIMATE_FIELD', group: 'Versions', help: "Id du champ Jira d'estimation test"},
+    {name: 'JIRA_DEV_ESTIMATE_FIELD', group: 'Versions', help: "Ids du champ Jira d'estimation dev (separes par des virgules, le premier renseigne gagne)"},
+    {name: 'JIRA_TEST_ESTIMATE_FIELD', group: 'Versions', help: "Ids du champ Jira d'estimation test (separes par des virgules, le premier renseigne gagne)"},
     {name: 'JIRA_DEV_ESTIMATE_DIVISOR', group: 'Versions', help: "Diviseur convertissant l'estimation dev en jours"},
     {name: 'JIRA_TEST_ESTIMATE_DIVISOR', group: 'Versions', help: "Diviseur convertissant l'estimation test en jours"},
     {name: 'TEAM_DEVS', group: 'Versions', help: 'Nombre de developpeurs (ETP)'},
     {name: 'TEAM_TESTERS', group: 'Versions', help: 'Nombre de testeurs (ETP)'},
     {name: 'WORK_DAYS_PER_WEEK', group: 'Versions', help: 'Jours travailles par semaine (lundi en premier)'},
-    {name: 'UNESTIMATED_MIN_DAYS', group: 'Versions', help: 'Jours minimum pour un ticket non estime'},
-    {name: 'UNESTIMATED_MAX_DAYS', group: 'Versions', help: 'Jours maximum pour un ticket non estime'},
+    {name: 'UNESTIMATED_MIN_DAYS', group: 'Versions', help: 'Jours minimum pour un ticket non estime cote dev'},
+    {name: 'UNESTIMATED_MAX_DAYS', group: 'Versions', help: 'Jours maximum pour un ticket non estime cote dev'},
+    {name: 'UNESTIMATED_TEST_MIN_DAYS', group: 'Versions', help: 'Jours minimum pour un ticket non estime cote test'},
+    {name: 'UNESTIMATED_TEST_MAX_DAYS', group: 'Versions', help: 'Jours maximum pour un ticket non estime cote test'},
+    {name: 'DEV_DONE_STATUSES', group: 'Versions', help: "Statuts ou le dev est termine : l'estimation dev n'est plus comptee (separes par des virgules)"},
+    {name: 'EXCLUDED_ISSUE_TYPES', group: 'Versions', help: "Types de ticket exclus du calcul (epics, taches, sous-taches), separes par des virgules"},
 ];
 
 export const ENV_FILE = path.join(__dirname, '..', '.env');
@@ -76,8 +81,8 @@ export interface Config {
     jiraToken: string;
     jiraProject: string;
     jiraStatusOrder: string[];
-    jiraDevEstimateField: string;
-    jiraTestEstimateField: string;
+    jiraDevEstimateField: string[];
+    jiraTestEstimateField: string[];
     jiraDevEstimateDivisor: number;
     jiraTestEstimateDivisor: number;
     teamDevs: number;
@@ -85,6 +90,10 @@ export interface Config {
     workDaysPerWeek: number;
     unestimatedMinDays: number;
     unestimatedMaxDays: number;
+    unestimatedTestMinDays: number;
+    unestimatedTestMaxDays: number;
+    devDoneStatuses: string[];
+    excludedIssueTypes: string[];
 }
 
 // Parses a .env file (KEY=VALUE); a missing file gives no variables.
@@ -152,6 +161,9 @@ export function buildConfig(vars: Record<string, string | undefined>): Config {
     const unestimatedMinDays = positive('UNESTIMATED_MIN_DAYS');
     const unestimatedMaxDays = positive('UNESTIMATED_MAX_DAYS');
     if (unestimatedMaxDays < unestimatedMinDays) throw new Error('UNESTIMATED_MAX_DAYS doit etre >= UNESTIMATED_MIN_DAYS');
+    const unestimatedTestMinDays = positive('UNESTIMATED_TEST_MIN_DAYS');
+    const unestimatedTestMaxDays = positive('UNESTIMATED_TEST_MAX_DAYS');
+    if (unestimatedTestMaxDays < unestimatedTestMinDays) throw new Error('UNESTIMATED_TEST_MAX_DAYS doit etre >= UNESTIMATED_TEST_MIN_DAYS');
 
     return {
         port: integer('PORT', 1),
@@ -170,8 +182,8 @@ export function buildConfig(vars: Record<string, string | undefined>): Config {
         jiraToken: env('JIRA_TOKEN'),
         jiraProject: env('JIRA_PROJECT'),
         jiraStatusOrder: list(env('JIRA_STATUS_ORDER')),
-        jiraDevEstimateField: env('JIRA_DEV_ESTIMATE_FIELD'),
-        jiraTestEstimateField: env('JIRA_TEST_ESTIMATE_FIELD'),
+        jiraDevEstimateField: list(env('JIRA_DEV_ESTIMATE_FIELD')),
+        jiraTestEstimateField: list(env('JIRA_TEST_ESTIMATE_FIELD')),
         jiraDevEstimateDivisor: positive('JIRA_DEV_ESTIMATE_DIVISOR'),
         jiraTestEstimateDivisor: positive('JIRA_TEST_ESTIMATE_DIVISOR'),
         teamDevs: positive('TEAM_DEVS'),
@@ -179,5 +191,9 @@ export function buildConfig(vars: Record<string, string | undefined>): Config {
         workDaysPerWeek: integer('WORK_DAYS_PER_WEEK', 1, 7),
         unestimatedMinDays,
         unestimatedMaxDays,
+        unestimatedTestMinDays,
+        unestimatedTestMaxDays,
+        devDoneStatuses: list(env('DEV_DONE_STATUSES')),
+        excludedIssueTypes: list(env('EXCLUDED_ISSUE_TYPES')),
     };
 }

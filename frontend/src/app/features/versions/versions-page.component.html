@@ -20,8 +20,8 @@
 
   <h2>Prevision de livraison</h2>
   <p class="mut">
-    Equipe : {{ d.team.devs }} dev, {{ d.team.testers }} testeur, {{ d.team.workDaysPerWeek }} j/semaine. Ticket sans chiffrage :
-    {{ d.team.unestimatedMin }} j (optimiste) a {{ d.team.unestimatedMax }} j (pessimiste).
+    Equipe : {{ d.team.devs }} dev, {{ d.team.testers }} testeur, {{ d.team.workDaysPerWeek }} j/semaine. Ticket sans chiffrage : dev {{ d.team.unestimatedMin }} j (optimiste) a {{ d.team.unestimatedMax }} j (pessimiste),
+    test {{ d.team.unestimatedTestMin }} j (optimiste) a {{ d.team.unestimatedTestMax }} j (pessimiste).
         @if (v.after) {
           La livraison inclut la fin de toutes les versions precedentes (jusqu'a {{ v.after }}) : tout ajout dans l'une decale celle-ci.
         }

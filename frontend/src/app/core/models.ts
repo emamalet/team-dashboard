@@ -154,7 +154,7 @@ export interface VersionForecast {
 }
 
 export interface VersionsData {
-    team: { devs: number; testers: number; workDaysPerWeek: number; unestimatedMin: number; unestimatedMax: number };
+    team: { devs: number; testers: number; workDaysPerWeek: number; unestimatedMin: number; unestimatedMax: number; unestimatedTestMin: number; unestimatedTestMax: number };
     versions: VersionForecast[];
 }
 

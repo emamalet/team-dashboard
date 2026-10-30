@@ -60,11 +60,14 @@ The **⚙ Configuration** page edits `backend/.env` (secrets are never shown bac
 | `JIRA_EMAIL` / `JIRA_TOKEN` | Jira, Versions | Atlassian account and API token |
 | `JIRA_PROJECT` | Jira, Versions | Jira project key |
 | `JIRA_STATUS_ORDER` | Jira, Versions | Status display order (comma-separated); also sorts the Versions tables |
-| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Versions | Jira field ids holding the dev / test estimates |
+| `JIRA_DEV_ESTIMATE_FIELD` / `JIRA_TEST_ESTIMATE_FIELD` | Versions | Jira field ids holding the dev / test estimates, comma-separated (the first one set wins) |
 | `JIRA_DEV_ESTIMATE_DIVISOR` / `JIRA_TEST_ESTIMATE_DIVISOR` | Versions | Divide the field value to get days (1 = days, 28800 = seconds with 8h days) |
 | `TEAM_DEVS` / `TEAM_TESTERS` | Versions | Full-time devs (decimals allowed) and testers |
 | `WORK_DAYS_PER_WEEK` | Versions | Working days per week, Monday first (1-7) |
-| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Versions | Days assumed for an unestimated issue (optimistic / pessimistic) |
+| `UNESTIMATED_MIN_DAYS` / `UNESTIMATED_MAX_DAYS` | Versions | Days assumed for an unestimated issue, dev side (optimistic / pessimistic) |
+| `UNESTIMATED_TEST_MIN_DAYS` / `UNESTIMATED_TEST_MAX_DAYS` | Versions | Same, test side |
+| `DEV_DONE_STATUSES` | Versions | Statuses where dev is finished (code review, to test, testing…): dev estimate no longer counted |
+| `EXCLUDED_ISSUE_TYPES` | Versions | Issue types excluded from the forecast (e.g. epics, tasks, sub-tasks) |
 
 ### How the Versions forecast works
 
